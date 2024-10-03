@@ -1,80 +1,83 @@
 [
   {
-    "timestamp": "2024-10-03T12:38:56-04:00",
+    "timestamp": "2024-10-03T19:09:06-04:00",
     "event_type": "process_execution",
-    "user_context": "lepley",
+    "username": "lepley",
     "hostname": "Matts-MacBook-Pro.local",
-    "executable": "ls",
-    "command_line": "/bin/ls -l",
-    "pid": 99923
+    "process_name": "ls",
+    "command_line": "/bin/ls -la",
+    "pid": 20847
   },
   {
-    "timestamp": "2024-10-03T12:38:56-04:00",
-    "event_type": "process_execution",
-    "user_context": "lepley",
-    "hostname": "Matts-MacBook-Pro.local",
-    "executable": "todo.txt",
-    "command_line": "cat tmp/todo.txt",
-    "pid": 99924
-  },
-  {
-    "timestamp": "2024-10-03T12:38:56-04:00",
+    "timestamp": "2024-10-03T19:09:06-04:00",
     "event_type": "filesystem_activity",
-    "user_context": "lepley",
+    "username": "lepley",
     "hostname": "Matts-MacBook-Pro.local",
-    "target_path": "tmp/telemetry_test_aeb5622a-6ee8-4960-a162-96979fb6b976.txt",
-    "operation": "create",
+    "target_path": "/Users/lepley/Desktop/RC/telemetry_test_295bcbcd-059b-4b50-b5be-a30ab403f4ab.txt",
+    "activity": "create",
     "process_name": "agent_regression_tester.rb",
-    "pid": 99909
+    "pid": 20834
   },
   {
-    "timestamp": "2024-10-03T12:38:56-04:00",
+    "timestamp": "2024-10-03T19:09:06-04:00",
     "event_type": "filesystem_activity",
-    "user_context": "lepley",
+    "username": "lepley",
     "hostname": "Matts-MacBook-Pro.local",
-    "target_path": "tmp/telemetry_test_aeb5622a-6ee8-4960-a162-96979fb6b976.txt",
-    "operation": "modify",
+    "target_path": "/Users/lepley/Desktop/RC/telemetry_test_295bcbcd-059b-4b50-b5be-a30ab403f4ab.txt",
+    "activity": "modify",
     "process_name": "agent_regression_tester.rb",
-    "pid": 99909
+    "pid": 20834
   },
   {
-    "timestamp": "2024-10-03T12:38:56-04:00",
+    "timestamp": "2024-10-03T19:09:06-04:00",
     "event_type": "filesystem_activity",
-    "user_context": "lepley",
+    "username": "lepley",
     "hostname": "Matts-MacBook-Pro.local",
-    "target_path": "tmp/telemetry_test_aeb5622a-6ee8-4960-a162-96979fb6b976.txt",
-    "operation": "delete",
+    "target_path": "/Users/lepley/Desktop/RC/telemetry_test_295bcbcd-059b-4b50-b5be-a30ab403f4ab.txt",
+    "activity": "delete",
     "process_name": "agent_regression_tester.rb",
-    "pid": 99909
+    "pid": 20834
   },
   {
-    "timestamp": "2024-10-03T12:38:56-04:00",
+    "timestamp": "2024-10-03T19:09:06-04:00",
     "event_type": "network_tcp_connection",
-    "user_context": "lepley",
+    "username": "lepley",
     "hostname": "Matts-MacBook-Pro.local",
+    "protocol": "TCP",
     "destination_host": "example.com",
     "destination_port": 80,
+    "bytes_transmitted": 37,
     "source_address": "192.168.1.4",
-    "source_port": 58288
+    "source_port": 50232,
+    "process_name": "agent_regression_tester.rb",
+    "pid": 20834
   },
   {
-    "timestamp": "2024-10-03T12:38:56-04:00",
+    "timestamp": "2024-10-03T19:09:06-04:00",
     "event_type": "network_http_get",
-    "user_context": "lepley",
+    "username": "lepley",
     "hostname": "Matts-MacBook-Pro.local",
-    "url": "https://example.com",
-    "response_code": "200",
-    "response_body_size": 1256,
-    "headers_sent": "https://example.com"
+    "protocol": "HTTP",
+    "destination_host": "example.com",
+    "destination_port": 80,
+    "bytes_transmitted": 0,
+    "source_address": "192.168.1.4",
+    "source_port": 50237,
+    "process_name": "agent_regression_tester.rb",
+    "pid": 20834
   },
   {
-    "timestamp": "2024-10-03T12:38:56-04:00",
+    "timestamp": "2024-10-03T19:09:06-04:00",
     "event_type": "network_udp_transmission",
-    "user_context": "lepley",
+    "username": "lepley",
     "hostname": "Matts-MacBook-Pro.local",
+    "protocol": "UDP",
     "destination_host": "8.8.8.8",
     "destination_port": 53,
-    "bytes_transmitted": 20,
-    "source_port": 53380
+    "bytes_transmitted": 8,
+    "source_address": "0.0.0.0",
+    "source_port": 50859,
+    "process_name": "agent_regression_tester.rb",
+    "pid": 20834
   }
 ]
