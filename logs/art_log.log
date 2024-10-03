@@ -1,0 +1,10 @@
+# Logfile created on 2024-10-03 12:38:56 -0400 by logger.rb/v1.6.1
+[2024-10-03 12:38:56 -0400] INFO: Recorded process_execution: {:executable=>"ls", :command_line=>"/bin/ls -l", :pid=>99923}
+[2024-10-03 12:38:56 -0400] INFO: Recorded process_execution: {:executable=>"todo.txt", :command_line=>"cat tmp/todo.txt", :pid=>99924}
+[2024-10-03 12:38:56 -0400] INFO: Recorded filesystem_activity: {:target_path=>"tmp/telemetry_test_aeb5622a-6ee8-4960-a162-96979fb6b976.txt", :operation=>"create", :process_name=>"agent_regression_tester.rb", :pid=>99909}
+[2024-10-03 12:38:56 -0400] INFO: Recorded filesystem_activity: {:target_path=>"tmp/telemetry_test_aeb5622a-6ee8-4960-a162-96979fb6b976.txt", :operation=>"modify", :process_name=>"agent_regression_tester.rb", :pid=>99909}
+[2024-10-03 12:38:56 -0400] INFO: Recorded filesystem_activity: {:target_path=>"tmp/telemetry_test_aeb5622a-6ee8-4960-a162-96979fb6b976.txt", :operation=>"delete", :process_name=>"agent_regression_tester.rb", :pid=>99909}
+[2024-10-03 12:38:56 -0400] INFO: Recorded network_tcp_connection: {:destination_host=>"example.com", :destination_port=>80, :source_address=>"192.168.1.4", :source_port=>58288}
+[2024-10-03 12:38:56 -0400] INFO: Recorded network_http_get: {:url=>"https://example.com", :response_code=>"200", :response_body_size=>1256, :headers_sent=>"https://example.com"}
+[2024-10-03 12:38:56 -0400] INFO: Recorded network_udp_transmission: {:destination_host=>"8.8.8.8", :destination_port=>53, :bytes_transmitted=>20, :source_port=>53380}
+[2024-10-03 12:38:56 -0400] INFO: Persisted 8 events to logs/art_log.json
