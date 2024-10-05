@@ -1,83 +1,75 @@
 [
   {
-    "timestamp": "2024-10-03T19:09:06-04:00",
-    "event_type": "process_execution",
+    "timestamp": "2024-10-04T20:01:43-04:00",
     "username": "lepley",
-    "hostname": "Matts-MacBook-Pro.local",
     "process_name": "ls",
-    "command_line": "/bin/ls -la",
-    "pid": 20847
+    "process_command": "agent_regression_tester.rb --all",
+    "process_id": 43229
   },
   {
-    "timestamp": "2024-10-03T19:09:06-04:00",
-    "event_type": "filesystem_activity",
+    "timestamp": "2024-10-04T20:01:43-04:00",
     "username": "lepley",
-    "hostname": "Matts-MacBook-Pro.local",
-    "target_path": "/Users/lepley/Desktop/RC/telemetry_test_295bcbcd-059b-4b50-b5be-a30ab403f4ab.txt",
-    "activity": "create",
     "process_name": "agent_regression_tester.rb",
-    "pid": 20834
+    "process_command": "agent_regression_tester.rb --all",
+    "process_id": 43216,
+    "file_path": "/Users/lepley/Desktop/RC/tesing_file.txt",
+    "activity": "create"
   },
   {
-    "timestamp": "2024-10-03T19:09:06-04:00",
-    "event_type": "filesystem_activity",
+    "timestamp": "2024-10-04T20:01:43-04:00",
     "username": "lepley",
-    "hostname": "Matts-MacBook-Pro.local",
-    "target_path": "/Users/lepley/Desktop/RC/telemetry_test_295bcbcd-059b-4b50-b5be-a30ab403f4ab.txt",
-    "activity": "modify",
     "process_name": "agent_regression_tester.rb",
-    "pid": 20834
+    "process_command": "agent_regression_tester.rb --all",
+    "process_id": 43216,
+    "file_path": "/Users/lepley/Desktop/RC/tesing_file.txt",
+    "activity": "modify"
   },
   {
-    "timestamp": "2024-10-03T19:09:06-04:00",
-    "event_type": "filesystem_activity",
+    "timestamp": "2024-10-04T20:01:43-04:00",
     "username": "lepley",
-    "hostname": "Matts-MacBook-Pro.local",
-    "target_path": "/Users/lepley/Desktop/RC/telemetry_test_295bcbcd-059b-4b50-b5be-a30ab403f4ab.txt",
-    "activity": "delete",
     "process_name": "agent_regression_tester.rb",
-    "pid": 20834
+    "process_command": "agent_regression_tester.rb --all",
+    "process_id": 43216,
+    "file_path": "/Users/lepley/Desktop/RC/tesing_file.txt",
+    "activity": "delete"
   },
   {
-    "timestamp": "2024-10-03T19:09:06-04:00",
-    "event_type": "network_tcp_connection",
+    "timestamp": "2024-10-04T20:01:43-04:00",
     "username": "lepley",
-    "hostname": "Matts-MacBook-Pro.local",
+    "process_name": "agent_regression_tester.rb",
+    "process_command": "agent_regression_tester.rb --all",
+    "process_id": 43216,
     "protocol": "TCP",
-    "destination_host": "example.com",
+    "data_in_bytes": 37,
+    "destination_addr": "example.com",
     "destination_port": 80,
-    "bytes_transmitted": 37,
-    "source_address": "192.168.1.4",
-    "source_port": 50232,
-    "process_name": "agent_regression_tester.rb",
-    "pid": 20834
+    "source_addr": "192.168.1.4",
+    "source_port": 57656
   },
   {
-    "timestamp": "2024-10-03T19:09:06-04:00",
-    "event_type": "network_http_get",
+    "timestamp": "2024-10-04T20:01:44-04:00",
     "username": "lepley",
-    "hostname": "Matts-MacBook-Pro.local",
+    "process_name": "agent_regression_tester.rb",
+    "process_command": "agent_regression_tester.rb --all",
+    "process_id": 43216,
     "protocol": "HTTP",
-    "destination_host": "example.com",
+    "data_in_bytes": 0,
+    "destination_addr": "example.com",
     "destination_port": 80,
-    "bytes_transmitted": 0,
-    "source_address": "192.168.1.4",
-    "source_port": 50237,
-    "process_name": "agent_regression_tester.rb",
-    "pid": 20834
+    "source_addr": "192.168.1.4",
+    "source_port": 57657
   },
   {
-    "timestamp": "2024-10-03T19:09:06-04:00",
-    "event_type": "network_udp_transmission",
+    "timestamp": "2024-10-04T20:01:44-04:00",
     "username": "lepley",
-    "hostname": "Matts-MacBook-Pro.local",
-    "protocol": "UDP",
-    "destination_host": "8.8.8.8",
-    "destination_port": 53,
-    "bytes_transmitted": 8,
-    "source_address": "0.0.0.0",
-    "source_port": 50859,
     "process_name": "agent_regression_tester.rb",
-    "pid": 20834
+    "process_command": "agent_regression_tester.rb --all",
+    "process_id": 43216,
+    "protocol": "UDP",
+    "data_in_bytes": 8,
+    "destination_addr": "8.8.8.8",
+    "destination_port": 53,
+    "source_addr": "0.0.0.0",
+    "source_port": 58399
   }
 ]

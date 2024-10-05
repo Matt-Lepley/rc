@@ -1,30 +1,34 @@
+# Questions/Notes:
+#
+# - Does Process command line mean the entire call when running the
+#   program (ruby agent_regression_tester -p ls -la) or just the command
+#   being run (ls -la)?
+#
+# TODO:
+#
+# - Make platform compatible for individual tests (check #test_all). Also
+#   ensure everything else is platform compatible.
+# - Validate permissions on file actions
+# - Testing
+# - Documentation
+
 require "socket"
 require "securerandom"
 require "net/http"
 require "etc"
+require "shellwords"
 
 require_relative "event_logger"
 
 class AgentRegressionTester
-  attr_reader :os, :logger
+  attr_reader :logger, :os, :username, :command
 
   VALID_FILE_ACTIONS = %w[create modify delete]
 
   def initialize
     @logger = EventLogger.new
-    @os = get_operating_system
-  end
-
-  def usage_output
-    abort(<<~EOS
-
-      Program:        ruby agent_regression_tester.rb -p  <path> <optional_args>
-      File:           ruby agent_regression_tester.rb -f  <path> <action [create|modify|delete]> <content [optional]>
-      Network (TCP):  ruby agent_regression_tester.rb -nt <host> <port>
-      Network (HTTP): ruby agent_regression_tester.rb -nh <url>
-      Network (UDP):  ruby agent_regression_tester.rb -nu <data>
-      EOS
-    )
+    @command = ([File.basename($PROGRAM_NAME)] + ARGV).shelljoin
+    get_operating_system_and_username
   end
 
   def run
@@ -42,15 +46,45 @@ class AgentRegressionTester
     end
   end
 
-  def test_individual
-    command, *args_array = ARGV
+  private
 
-    if command.nil?
+  def get_operating_system_and_username
+    @username = ENV["USER"] || ENV["LOGNAME"] || `whoami`.chomp
+
+    case RUBY_PLATFORM
+    when /darwin/i
+      @os = "macOS"
+    when /linux/i
+      @os = "Linux"
+    when /mswin|mingw|cygwin/i
+      @os = "Windows"
+      @username ||= ENV["USERNAME"]
+    else
+      @os = "Unknown"
+    end
+  end
+
+  def usage_output
+    abort(<<~EOS
+
+      Program:        ruby agent_regression_tester.rb -p  <path> <optional_args>
+      File:           ruby agent_regression_tester.rb -f  <path> <action [create|modify|delete]> <content [optional]>
+      Network (TCP):  ruby agent_regression_tester.rb -nt <host> <port>
+      Network (HTTP): ruby agent_regression_tester.rb -nh <url>
+      Network (UDP):  ruby agent_regression_tester.rb -nu <data>
+      EOS
+    )
+  end
+
+  def test_individual
+    command_arg, *args_array = ARGV
+
+    if command_arg.nil?
       puts "Error: Must provide command argument."
       usage_output
     end
 
-    if command == "-p"
+    if command_arg == "-p"
       path, *args_array = *args_array
 
       if path.nil?
@@ -61,10 +95,10 @@ class AgentRegressionTester
       valid_args = args_array.select { |arg| arg.include?("-") }
       invalid_args = args_array - valid_args
 
-      puts "** Removed invalid args: #{invalid_args.to_s}" if [invalid_args].any?
+      puts "** Removed invalid args: #{invalid_args.to_s}" if invalid_args.any?
 
       execute_process(path, valid_args)
-    elsif command == "-f"
+    elsif command_arg == "-f"
       path, action, content, *args_array = *args_array
 
       unless path && action && VALID_FILE_ACTIONS.include?(action)
@@ -73,7 +107,7 @@ class AgentRegressionTester
       end
 
       handle_file_actions(path, action, content)
-    elsif command == "-nt"
+    elsif command_arg == "-nt"
       host, port, *args_array = *args_array
 
       if host.nil? || port.nil?
@@ -82,7 +116,7 @@ class AgentRegressionTester
       end
 
       tcp_connection(host, port)
-    elsif command == "-nh"
+    elsif command_arg == "-nh"
       url, *args_array = *args_array
 
       if url.nil?
@@ -91,7 +125,7 @@ class AgentRegressionTester
       end
 
       http_get_request(url)
-    elsif command == "-nu"
+    elsif command_arg == "-nu"
       data, *args_array = *args_array
 
       if data.nil?
@@ -107,7 +141,7 @@ class AgentRegressionTester
   end
 
   def test_all
-    test_file = "telemetry_test_#{SecureRandom.uuid}.txt"
+    test_file = "tesing_file.txt"
 
     # Process testing
     if @os == "Windows"
@@ -134,20 +168,20 @@ class AgentRegressionTester
   end
 
   def execute_process(file_path, args)
-    command = [file_path, args].join(" ")
-    process = IO.popen(command)
+    process_command = [file_path, args].join(" ").strip
+    process = IO.popen(process_command)
 
-    @logger.record_event(
-      "process_execution",
+    @logger.record_process_event(
+      timestamp: Time.now.iso8601,
+      username:,
       process_name: File.basename(file_path),
-      command_line: command,
-      pid: process.pid
+      process_command: @command,
+      process_id: process.pid,
     )
 
     process
   rescue => e
-    @logger.record_event("process_execution_error", error: e.message)
-    raise
+    @logger.record_logging_error(e.message)
   end
 
   def handle_file_actions(file_path, action, content = nil)
@@ -162,16 +196,17 @@ class AgentRegressionTester
       File.delete(file_path)
     end
 
-    @logger.record_event(
-      "filesystem_activity",
-      target_path: File.expand_path(file_path),
-      activity: action,
+    @logger.record_file_event(
+      timestamp: Time.now.iso8601,
+      username:,
       process_name: File.basename($PROGRAM_NAME),
-      pid: Process.pid
+      process_command: @command,
+      process_id: Process.pid,
+      file_path: File.expand_path(file_path),
+      activity: action
     )
   rescue => e
-    @logger.record_event("filesystem_error", error: e.message)
-    raise
+    @logger.record_logging_error(e.message)
   end
 
   def tcp_connection(host, port)
@@ -185,17 +220,21 @@ class AgentRegressionTester
     data = "GET / HTTP/1.0\r\nHost: #{host}\r\n\r\n"
     socket.write(data)
 
-    @logger.record_event(
-      "network_tcp_connection",
-      protocol: "TCP",
-      destination_host: host,
-      destination_port: port,
-      bytes_transmitted: data.bytesize,
-      source_address: socket.local_address.ip_address,
-      source_port: socket.local_address.ip_port,
+    @logger.record_network_event(
+      timestamp: Time.now.iso8601,
+      username:,
       process_name: File.basename($PROGRAM_NAME),
-      pid: Process.pid
+      process_command: @command,
+      process_id: Process.pid,
+      protocol: "TCP",
+      data_in_bytes: data.bytesize,
+      destination_addr: host,
+      destination_port: port,
+      source_addr: socket.local_address.ip_address,
+      source_port: socket.local_address.ip_port
     )
+  rescue => e
+    @logger.record_logging_error(e.message)
   ensure
     socket&.close
   end
@@ -217,17 +256,21 @@ class AgentRegressionTester
       local_conn[:port] = socket.local_address.ip_port
     end
 
-    @logger.record_event(
-      "network_http_get",
-      protocol: "HTTP",
-      destination_host: uri.host,
-      destination_port: uri.port,
-      bytes_transmitted: request.body&.bytesize || 0,
-      source_address: local_conn[:host],
-      source_port: local_conn[:port],
+    @logger.record_network_event(
+      timestamp: Time.now.iso8601,
+      username:,
       process_name: File.basename($PROGRAM_NAME),
-      pid: Process.pid
+      process_command: @command,
+      process_id: Process.pid,
+      protocol: "HTTP",
+      data_in_bytes: request.body&.bytesize || 0,
+      destination_addr: uri.host,
+      destination_port: uri.port,
+      source_addr: local_conn[:host],
+      source_port: local_conn[:port]
     )
+  rescue => e
+    @logger.record_logging_error(e.message)
   end
 
   # NOTE: socket local_address returns 0.0.0.0
@@ -237,34 +280,23 @@ class AgentRegressionTester
     socket = UDPSocket.new
     bytes_sent = socket.send(data, 0, host, port)
 
-    @logger.record_event(
-      "network_udp_transmission",
-      protocol: "UDP",
-      destination_host: host,
-      destination_port: port,
-      bytes_transmitted: bytes_sent,
-      source_address: socket.local_address.ip_address,
-      source_port: socket.local_address.ip_port,
+    @logger.record_network_event(
+      timestamp: Time.now.iso8601,
+      username:,
       process_name: File.basename($PROGRAM_NAME),
-      pid: Process.pid
+      process_command: @command,
+      process_id: Process.pid,
+      protocol: "UDP",
+      data_in_bytes: bytes_sent,
+      destination_addr: host,
+      destination_port: port,
+      source_addr: socket.local_address.ip_address,
+      source_port: socket.local_address.ip_port
     )
+  rescue => e
+    @logger.record_logging_error(e.message)
   ensure
     socket&.close
-  end
-
-  private
-
-  def get_operating_system
-    case RUBY_PLATFORM
-    when /darwin/i
-      "macOS"
-    when /linux/i
-      "Linux"
-    when /mswin|mingw|cygwin/i
-      "Windows"
-    else
-      "Unknown"
-    end
   end
 end
 
@@ -281,6 +313,6 @@ if __FILE__ == $PROGRAM_NAME
 
     puts "* Testing completed. Check the log files for results."
   rescue => e
-    puts "Error during telemetry testing: #{e.message}"
+    puts "Error during testing: #{e.message}"
   end
 end

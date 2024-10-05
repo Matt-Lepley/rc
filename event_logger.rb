@@ -2,6 +2,17 @@ require "json"
 require "logger"
 require "time"
 
+BASE_REQUIRED_LOG_ATTRS = %i[timestamp username process_name process_command process_id]
+FILE_REQUIRED_ATTRS = BASE_REQUIRED_LOG_ATTRS + %i[file_path activity]
+NETWORK_REQUIRED_ATTRS = BASE_REQUIRED_LOG_ATTRS + %i[
+  protocol
+  data_in_bytes
+  destination_addr
+  destination_port
+  source_addr
+  source_port
+]
+
 class EventLogger
   def initialize(json_log_file: "logs/art_log.json", text_log_file: "logs/art_log.log")
     @json_log_file = json_log_file
@@ -9,17 +20,32 @@ class EventLogger
     @logger = configure_text_logger(text_log_file)
   end
 
-  def record_event(event_type, **details)
-    log_data = {
-      timestamp: Time.now.iso8601,
-      event_type: event_type,
-      username: Etc.getlogin,
-      hostname: Socket.gethostname,
-      **details
-    }
+  def record_process_event(**attrs)
+    validate_log_attributes(BASE_REQUIRED_LOG_ATTRS, attrs)
 
-    @events << log_data
-    @logger.info(log_data)
+    @events << attrs
+    @logger.info(attrs)
+  end
+
+  def record_file_event(**attrs)
+    validate_log_attributes(FILE_REQUIRED_ATTRS, attrs)
+
+    @events << attrs
+    @logger.info(attrs)
+  end
+
+  def record_network_event(**attrs)
+    validate_log_attributes(NETWORK_REQUIRED_ATTRS, attrs)
+
+    @events << attrs
+    @logger.info(attrs)
+  end
+
+  def record_logging_error(error)
+    @events << { error: }
+    @logger.error(error)
+
+    abort(error)
   end
 
   def persist_logs
@@ -29,11 +55,22 @@ class EventLogger
 
   private
 
+  def validate_log_attributes(required_attrs, input_attrs)
+    missing_keys = required_attrs - input_attrs.keys
+    empty_values = required_attrs.select { |key| input_attrs[key].nil? || input_attrs[key].to_s.empty? }
+
+    if missing_keys.any? || empty_values.any?
+      record_logging_error(
+        "Ensure you have provided all attributes and values for each of the following: #{required_attrs}"
+      )
+    end
+  end
+
   def configure_text_logger(log_file)
     # logger = Logger.new(log_file) => If we want to persist ALL logs
-    logger = Logger.new(File.open(log_file, 'w'))
+    logger = Logger.new(File.open(log_file, "w"))
     logger.level = Logger::INFO
-    logger.formatter = proc do |severity, datetime, progname, msg|
+    logger.formatter = proc do |severity, datetime, program_name, msg|
       "[#{datetime}] #{severity}: #{msg}\n"
     end
     logger
