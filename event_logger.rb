@@ -1,6 +1,5 @@
 require "json"
 require "logger"
-require "time"
 
 BASE_REQUIRED_LOG_ATTRS = %i[timestamp username process_name process_command process_id]
 FILE_REQUIRED_ATTRS = BASE_REQUIRED_LOG_ATTRS + %i[file_path activity]

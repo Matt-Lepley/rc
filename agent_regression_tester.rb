@@ -6,15 +6,13 @@
 #
 # TODO:
 #
-# - Validate permissions on file actions
 # - Testing
 # - Documentation
 
-require "socket"
-require "securerandom"
 require "net/http"
-require "etc"
 require "shellwords"
+require "socket"
+require "time"
 
 require_relative "event_logger"
 
@@ -143,7 +141,7 @@ class AgentRegressionTester
 
   def test_all
     test_file = "tesing_file.txt"
-    puts "A"
+
     # Process testing
     if @os == "Windows"
       execute_process("notepad.exe")
@@ -210,12 +208,23 @@ class AgentRegressionTester
   end
 
   def handle_file_actions(file_path, action, content = nil)
+    if ["modify", "delete"].include?(action) && !File.exist?(file_path)
+      abort("File ['#{file_path}'] does not exist")
+    end
+
+    # Testing files for readonly
+    # /var/log/syslog - windows
+    # /etc/passwd - linux/mac
+
     content ||= "Test data"
 
     case action
     when "create"
       File.write(file_path, content)
     when "modify"
+      if !File.stat(file_path).writable?
+        abort("File ['#{file_path}'] is not writable")
+      end
       File.open(file_path, "a") { |f| f.puts("\n#{content}\nModified: #{Time.now}") }
     when "delete"
       File.delete(file_path)
