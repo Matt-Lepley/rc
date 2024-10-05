@@ -6,8 +6,6 @@
 #
 # TODO:
 #
-# - Make platform compatible for individual tests (check #test_all). Also
-#   ensure everything else is platform compatible.
 # - Validate permissions on file actions
 # - Testing
 # - Documentation
@@ -24,6 +22,9 @@ class AgentRegressionTester
   attr_reader :logger, :os, :username, :command
 
   VALID_FILE_ACTIONS = %w[create modify delete]
+  VALID_WINDOWS_PROCESSES = %w[notepad.exe calc.exe mspaint.exe]
+  VALID_LINUX_PROCESSES = %w[ls ps pwd]
+  VALID_MAC_PROCESSES = %w[TextEdit Calculator]
 
   def initialize
     @logger = EventLogger.new
@@ -85,10 +86,10 @@ class AgentRegressionTester
     end
 
     if command_arg == "-p"
-      path, *args_array = *args_array
+      process_name, *args_array = *args_array
 
-      if path.nil?
-        puts "Error: Must provide path argument."
+      if process_name.nil?
+        puts "Error: Must provide process_name argument."
         usage_output
       end
 
@@ -97,7 +98,7 @@ class AgentRegressionTester
 
       puts "** Removed invalid args: #{invalid_args.to_s}" if invalid_args.any?
 
-      execute_process(path, valid_args)
+      execute_process(process_name, valid_args)
     elsif command_arg == "-f"
       path, action, content, *args_array = *args_array
 
@@ -142,14 +143,14 @@ class AgentRegressionTester
 
   def test_all
     test_file = "tesing_file.txt"
-
+    puts "A"
     # Process testing
     if @os == "Windows"
       execute_process("notepad.exe")
     elsif @os == "macOS"
-      execute_process("/bin/ls", ["-la"])
+      execute_process("TextEdit")
     elsif @os == "Linux"
-      execute_process("/bin/ls", ["-la"])
+      execute_process("ls", ["-la"])
     else
       raise "Unable to detect OS, received #{RUBY_PLATFORM} as platform."
     end
@@ -167,19 +168,43 @@ class AgentRegressionTester
     udp_transmission("DNS Test")
   end
 
-  def execute_process(file_path, args)
-    process_command = [file_path, args].join(" ").strip
-    process = IO.popen(process_command)
+  def execute_process(process_name, args = [])
+    case @os
+    when "macOS"
+      unless VALID_MAC_PROCESSES.include?(process_name)
+        puts "Error: Must provide valid process name. #{VALID_MAC_PROCESSES.to_s}"
+        usage_output
+      end
+
+      os_command = ["open -a", process_name, args].join(" ").strip
+    when "Linux"
+      unless VALID_LINUX_PROCESSES.include?(process_name)
+        puts "Error: Must provid valid process name. #{VALID_LINUX_PROCESSES.to_s}"
+        usage_output
+      end
+
+      os_command = [process_name, args].join(" ").strip
+    when "Windows"
+      unless VALID_WINDOWS_PROCESSES.include?(process_name)
+        puts "Error: Must provide valid process name. #{VALID_WINDOWS_PROCESSES.to_s}"
+        usage_output
+      end
+
+      os_command = ["start", process_name, args].join(" ").strip
+    end
+
+    process = IO.popen(os_command)
 
     @logger.record_process_event(
       timestamp: Time.now.iso8601,
       username:,
-      process_name: File.basename(file_path),
+      process_name: File.basename(process_name),
       process_command: @command,
       process_id: process.pid,
     )
 
-    process
+    # Don't leave process running, force kill
+    Process.kill("KILL", process.pid)
   rescue => e
     @logger.record_logging_error(e.message)
   end
