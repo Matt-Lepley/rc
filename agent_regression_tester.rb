@@ -34,14 +34,13 @@ class AgentRegressionTester
     command = ARGV[0]
 
     if command.nil?
-      puts "Error: Must provide command argument."
-      usage_output
+      usage_output("Error: Must provide command argument.")
     end
 
     if command == "--all"
-      test_all
+      run_all_commands
     else
-      test_individual
+      run_single_command
     end
   end
 
@@ -63,8 +62,9 @@ class AgentRegressionTester
     end
   end
 
-  def usage_output
+  def usage_output(error = "")
     abort(<<~EOS
+      #{error}
 
       Program:        ruby agent_regression_tester.rb -p  <path> <optional_args>
       File:           ruby agent_regression_tester.rb -f  <path> <action [create|modify|delete]> <content [optional]>
@@ -75,20 +75,18 @@ class AgentRegressionTester
     )
   end
 
-  def test_individual
+  def run_single_command
     command_arg, *args_array = ARGV
 
     if command_arg.nil?
-      puts "Error: Must provide command argument."
-      usage_output
+      usage_output("Error: Must provide command argument.")
     end
 
     if command_arg == "-p"
       process_name, *args_array = *args_array
 
       if process_name.nil?
-        puts "Error: Must provide process_name argument."
-        usage_output
+        usage_output("Error: Must provide process_name argument.")
       end
 
       valid_args = args_array.select { |arg| arg.include?("-") }
@@ -101,8 +99,7 @@ class AgentRegressionTester
       path, action, content, *args_array = *args_array
 
       unless path && action && VALID_FILE_ACTIONS.include?(action)
-        puts "Error: Must provide path and valid action. #{VALID_FILE_ACTIONS.to_s}"
-        usage_output
+        usage_output("Error: Must provide path and valid action. #{VALID_FILE_ACTIONS.to_s}")
       end
 
       handle_file_actions(path, action, content)
@@ -110,8 +107,7 @@ class AgentRegressionTester
       host, port, *args_array = *args_array
 
       if host.nil? || port.nil?
-        puts "Error: Must provide host and port."
-        usage_output
+        usage_output("Error: Must provide host and port.")
       end
 
       tcp_connection(host, port)
@@ -119,8 +115,7 @@ class AgentRegressionTester
       url, *args_array = *args_array
 
       if url.nil?
-        puts "Error: Must provide url."
-        usage_output
+        usage_output("Error: Must provide url.")
       end
 
       http_get_request(url)
@@ -128,18 +123,16 @@ class AgentRegressionTester
       data, *args_array = *args_array
 
       if data.nil?
-        puts "Error: Must provie data."
-        usage_output
+        usage_output("Error: Must provie data.")
       end
 
       udp_transmission(data)
     else
-      puts "Error: Unknown command."
-      usage_output
+      usage_output("Error: Unknown command.")
     end
   end
 
-  def test_all
+  def run_all_commands
     test_file = "tesing_file.txt"
 
     # Process testing
@@ -170,22 +163,19 @@ class AgentRegressionTester
     case @os
     when "macOS"
       unless VALID_MAC_PROCESSES.include?(process_name)
-        puts "Error: Must provide valid process name. #{VALID_MAC_PROCESSES.to_s}"
-        usage_output
+        usage_output("Error: Must provide valid process name. #{VALID_MAC_PROCESSES.to_s}")
       end
 
       os_command = ["open -a", process_name, args].join(" ").strip
     when "Linux"
       unless VALID_LINUX_PROCESSES.include?(process_name)
-        puts "Error: Must provid valid process name. #{VALID_LINUX_PROCESSES.to_s}"
-        usage_output
+        usage_output("Error: Must provide valid process name. #{VALID_LINUX_PROCESSES.to_s}")
       end
 
       os_command = [process_name, args].join(" ").strip
     when "Windows"
       unless VALID_WINDOWS_PROCESSES.include?(process_name)
-        puts "Error: Must provide valid process name. #{VALID_WINDOWS_PROCESSES.to_s}"
-        usage_output
+        usage_output("Error: Must provide valid process name. #{VALID_WINDOWS_PROCESSES.to_s}")
       end
 
       os_command = ["start", process_name, args].join(" ").strip
@@ -225,6 +215,7 @@ class AgentRegressionTester
       if !File.stat(file_path).writable?
         abort("File ['#{file_path}'] is not writable")
       end
+
       File.open(file_path, "a") { |f| f.puts("\n#{content}\nModified: #{Time.now}") }
     when "delete"
       File.delete(file_path)
@@ -247,8 +238,7 @@ class AgentRegressionTester
     begin
       socket = TCPSocket.new(host, port, connect_timeout: 5)
     rescue Errno::ETIMEDOUT
-      puts "Failed to establish connection. Make sure host and port are valid."
-      usage_output
+      usage_output("Failed to establish connection. Make sure host and port are valid.")
     end
 
     data = "GET / HTTP/1.0\r\nHost: #{host}\r\n\r\n"
