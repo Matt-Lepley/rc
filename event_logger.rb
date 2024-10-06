@@ -1,3 +1,20 @@
+#############
+# EventLogger
+#
+# This class provides logging functionality for the Agent Regression Tester (ART).
+# It records and persists events generated during the testing process including
+# process executions, file operations, and network activities. Predefined sets of
+# required attributes are used to ensure data integrity and completeness for each
+# type of logged event.
+#
+# Usage:
+#   logger = EventLogger.new
+#   logger.record_process_event(...)
+#   logger.record_file_event(...)
+#   logger.record_network_event(...)
+#   logger.persist_logs
+#
+
 require "json"
 require "logger"
 

@@ -1,18 +1,27 @@
-# Questions/Notes:
+#############
+# Agent Regression Tester (ART)
 #
-# - Does Process command line mean the entire call when running the
-#   program (ruby agent_regression_tester -p ls -la) or just the command
-#   being run (ls -la)?
+# This script provides a way to replicate common endpoint activities for testing and debugging
+# purposes. It's designed to assist in testing and debugging by allowing controlled execution of
+# processes, file operations, and network activities.
 #
-# TODO:
+# Usage:
+#   ruby agent_regression_tester.rb [OPTIONS]
 #
-# - Testing
-# - Documentation
+# Options:
+#   -p <process_name> [args] : Execute a process
+#   -f <path> <action> [content] : Perform a file operation
+#   -nt <host> <port> : Make a TCP connection
+#   -nh <url> : Send an HTTP request
+#   -nu <data> : Transmit UDP data
+#   --all : Run all tests
+#
 
 require "net/http"
 require "shellwords"
 require "socket"
 require "time"
+require 'fileutils'
 
 require_relative "event_logger"
 
@@ -197,20 +206,28 @@ class AgentRegressionTester
     @logger.record_logging_error(e.message)
   end
 
+  # NOTE: Testing directories for readonly
+  #
+  # /var/log/syslog - windows
+  # /etc/passwd - linux/mac
   def handle_file_actions(file_path, action, content = nil)
     if ["modify", "delete"].include?(action) && !File.exist?(file_path)
       abort("File ['#{file_path}'] does not exist")
     end
 
-    # Testing files for readonly
-    # /var/log/syslog - windows
-    # /etc/passwd - linux/mac
-
     content ||= "Test data"
 
     case action
     when "create"
+      dir_path = File.dirname(file_path)
+
+      unless Dir.exist?(dir_path)
+        FileUtils.mkdir_p(dir_path)
+        puts "**Created directory: #{dir_path}"
+      end
+
       File.write(file_path, content)
+
     when "modify"
       if !File.stat(file_path).writable?
         abort("File ['#{file_path}'] is not writable")
